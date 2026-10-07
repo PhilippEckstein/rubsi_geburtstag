@@ -45,12 +45,22 @@ GitHub Pages veröffentlicht statische Dateien. Die Website braucht keinen Serve
 
 ## Seiten und Navigation
 
-Die App hat zwei Seiten: **Geburtstag** (`#/geburtstag`) und **Wünsche** (`#/wuensche`). Die Seitennavigation zeigt die aktive Seite an. Auf kleinen Bildschirmen lässt sie sich über den Menübutton öffnen und schließen.
+Die App hat zwei Seiten: **Geburtstag** (`#/geburtstag`) und **Dein Geschenk** (`#/geschenk`). Die Seitennavigation zeigt die aktive Seite an. Auf kleinen Bildschirmen lässt sie sich über den Menübutton öffnen und schließen.
 
 - `src/app/app.html` und `src/app/app.css`: App-Rahmen und Seitennavigation.
 - `src/app/app.routes.ts`: Routen und Seitentitel.
 - `src/app/pages/birthday.html` und `birthday.ts`: Geburtstagsseite und Überraschungsbutton.
-- `src/app/pages/wishes.html`: Wünsche-Seite.
+- `src/app/pages/wishes.html`: Inhalt der Geschenkseite.
 - `src/styles.css`: Gemeinsame Seitengestaltung.
 
 Das Hash-Routing sorgt dafür, dass direkte Links und Neuladen auf GitHub Pages ohne Server-Weiterleitungen funktionieren.
+
+## Geschenkdialog
+
+Auf der Geburtstagsseite öffnet **Click mich für dein Geschenk** einen nativen Dialog. Sobald Mauszeiger oder Touch dem inneren Button nahekommen, weicht der gesamte Dialog flüssig innerhalb des sichtbaren Fensters aus.
+
+Zehn Sekunden nach dem ersten Öffnen wird die Geschenkseite in der Sidenav sichtbar und der Dialogbutton anklickbar. Die Bewegung stoppt an der aktuellen Position. **Click mich** führt dann zur Geschenkseite. Schließen oder erneutes Öffnen setzt die laufende Wartezeit nicht zurück. Beim Neuladen der App beginnt das Spiel wieder mit einer gesperrten Geschenkseite.
+
+Die Route ist vor der Freischaltung geschützt; direkte Links werden zur Geburtstagsseite umgeleitet. Die Geschenkseite enthält aktuell die bestehenden Geburtstagswünsche. Der konkrete Geschenkinhalt kann in `src/app/pages/wishes.html` ergänzt werden.
+
+Prüfen: `npm run test:gift` und `npm run build:pages`. Die Logiktests laufen auch im GitHub-Actions-Workflow.

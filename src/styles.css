@@ -61,3 +61,4 @@ footer { font-size: 11px; color: #69685e; }
   .birthday-art { width: calc(100% - 30px); max-width: 420px; justify-self: center; }
   .wish-grid { grid-template-columns: 1fr; }
 }
+.wishes h1 { overflow-wrap: anywhere; }

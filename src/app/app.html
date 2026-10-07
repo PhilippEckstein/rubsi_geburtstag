@@ -7,7 +7,9 @@
   <nav id="page-navigation" aria-label="Seiten" [class.mobile-open]="menuOpen()" (keydown.escape)="closeMenu(); menuToggle.focus()">
     <p class="nav-caption">Deine Geburtstagsseite</p>
     <a routerLink="/geburtstag" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(); onPageActivated()"><span aria-hidden="true">✳</span> Geburtstag</a>
-    <a routerLink="/wuensche" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(); onPageActivated()"><span aria-hidden="true">♡</span> Wünsche</a>
+    @if (gift.unlocked()) {
+      <a routerLink="/geschenk" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(); onPageActivated()"><span aria-hidden="true">♡</span> Dein Geschenk</a>
+    }
   </nav>
   <p class="nav-note">Ein kleines Stück<br>Geburtstagsglück für dich.</p>
 </aside>

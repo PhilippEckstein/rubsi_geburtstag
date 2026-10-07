@@ -1,4 +1,4 @@
-﻿name: Deploy Angular to GitHub Pages
+name: Deploy Angular to GitHub Pages
 
 on:
   push:
@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Test gift interaction
+        run: npm run test:gift
       - name: Build for GitHub Pages
         run: npm run build:pages
       - name: Upload website
