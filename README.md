@@ -61,6 +61,10 @@ Auf der Geburtstagsseite öffnet **Click mich für dein Geschenk** einen nativen
 
 Zehn Sekunden nach dem ersten Öffnen wird die Geschenkseite in der Sidenav sichtbar und der Dialogbutton anklickbar. Die Bewegung stoppt an der aktuellen Position. **Click mich** führt dann zur Geschenkseite. Schließen oder erneutes Öffnen setzt die laufende Wartezeit nicht zurück. Beim Neuladen der App beginnt das Spiel wieder mit einer gesperrten Geschenkseite.
 
-Die Route ist vor der Freischaltung geschützt; direkte Links werden zur Geburtstagsseite umgeleitet. Die Geschenkseite enthält aktuell die bestehenden Geburtstagswünsche. Der konkrete Geschenkinhalt kann in `src/app/pages/wishes.html` ergänzt werden.
+Die Route ist vor der Freischaltung geschützt; direkte Links werden zur Geburtstagsseite umgeleitet. Die Geschenkseite zeigt ein eigens generiertes Family-Guy-Meme mit Peter Griffin passend zur Button-Jagd. Der Inhalt kann in `src/app/pages/wishes.html` geändert werden; das Bild liegt lokal unter `public/memes/family-guy-geschenk.png`.
 
 Prüfen: `npm run test:gift` und `npm run build:pages`. Die Logiktests laufen auch im GitHub-Actions-Workflow.
+
+## Meme-Bild
+
+Erstellt mit dem integrierten Imagegen-Tool. Motiv/Prompt: Peter Griffin sitzt erschöpft und genervt mit einer Computermaus auf seinem Sofa im Family-Guy-Zeichenstil. Quadratisches Meme mit großer weißer Schrift und schwarzer Kontur. Oberer Text: "ICH NACH 10 SEKUNDEN BUTTON-JAGD". Unterer Text: "WO IST MEIN GESCHENK?". Keine weiteren Figuren oder Wasserzeichen.

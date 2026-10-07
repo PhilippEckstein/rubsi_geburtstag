@@ -1,0 +1,6 @@
+﻿.gift-page { padding-top: 45px; }
+.gift-intro { color: #69685e; line-height: 1.6; font-size: 16px; margin: -12px 0 28px; }
+.meme { max-width: 680px; margin: 0 auto; }
+.meme img { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: 0 12px 35px #29352d18; }
+.meme figcaption { color: #69685e; font-size: 13px; line-height: 1.7; text-align: center; padding: 20px 8px 0; }
+@media (max-width: 600px) { .gift-page { padding-top: 30px; } .meme img { border-radius: 12px; } }
