@@ -1,44 +1,19 @@
-﻿<header class="site-header">
-  <a class="wordmark" href="#start" aria-label="Zur Startseite">Für Rubsi<span aria-hidden="true">✳</span></a>
-  <a class="header-link" href="#wuensche">Ein paar liebe Worte <span aria-hidden="true">↗</span></a>
-</header>
-<main id="start">
-  <section class="hero" aria-labelledby="birthday-title">
-    <div class="hero-copy">
-      <p class="eyebrow"><span class="dot" aria-hidden="true"></span> Heute dreht sich alles um dich</p>
-      <h1 id="birthday-title">Happy<br>Birthday,<br><span>Rubsi!</span></h1>
-      <p class="intro">Auf dich, auf die kleinen Glücksmomente und auf ein neues Jahr voller schöner Geschichten.</p>
-      <button class="primary-button" type="button" (click)="openSurprise()">Eine kleine Überraschung <span aria-hidden="true">↗</span></button>
-      <div class="surprise" role="status" aria-live="polite">
-        @if (surpriseOpen()) {
-          <p>🎉 Schön, dass es dich gibt, Rubsi! Diese kleine Seite ist nur für dich. Alles Liebe zum Geburtstag! 💛</p>
-        }
-      </div>
-    </div>
-    <div class="birthday-art" role="img" aria-label="Eine Geburtstagskarte mit einer Torte, drei Kerzen und bunten Sternen">
-      <span class="art-note">a little birthday magic</span>
-      <span class="spark spark-one" aria-hidden="true">✦</span>
-      <span class="spark spark-two" aria-hidden="true">✳</span>
-      <span class="spark spark-three" aria-hidden="true">✦</span>
-      <div class="cake" aria-hidden="true">
-        <div class="candles"><i></i><i></i><i></i></div>
-        <div class="cake-top"></div>
-        <div class="cake-body"><span></span><span></span><span></span><span></span><span></span></div>
-        <div class="cake-base"></div>
-      </div>
-      <span class="art-caption">MAKE A WISH.</span>
-      <span class="art-sticker" aria-hidden="true">100%<br>für dich</span>
-    </div>
-  </section>
-  <div class="ribbon" aria-hidden="true"><span>Konfetti im Herzen ✳ Kuchen auf dem Teller ✳ Lieblingsmenschen an deiner Seite ✳</span></div>
-  <section class="wishes" id="wuensche" aria-labelledby="wishes-title">
-    <div class="section-heading"><p class="eyebrow">Für dein neues Lebensjahr</p><h2 id="wishes-title">Mehr von dem,<br>was dich glücklich macht.</h2></div>
-    <div class="wish-grid">
-      <article><span class="card-icon" aria-hidden="true">☀</span><h3>Kleine Glücksmomente</h3><p>Sonnenschein im Gesicht, dein Lieblingslied und ganz viele Gründe, einfach mal zu lächeln.</p></article>
-      <article><span class="card-icon" aria-hidden="true">♡</span><h3>Die besten Menschen</h3><p>Zeit mit denen, die dir guttun. Für lange Gespräche, große Umarmungen und gemeinsames Lachen.</p></article>
-      <article><span class="card-icon" aria-hidden="true">✧</span><h3>Neue Abenteuer</h3><p>Mut für deine Wünsche, Platz für neue Ideen und Erinnerungen, die noch lange bleiben.</p></article>
-    </div>
-  </section>
-  <section class="closing"><p>Ein neuer Lieblingsmoment beginnt mit dir.</p><span>Auf ein wunderbares neues Lebensjahr ♡</span></section>
-</main>
-<footer><span>Mit Liebe gemacht. Für Rubsi.</span><a href="#start">Zurück nach oben ↑</a></footer>
+<a class="skip-link" href="#page-content" (click)="$event.preventDefault(); focusContent.focus()">Zum Inhalt</a>
+<aside class="sidenav" aria-label="Seitennavigation">
+  <div class="nav-heading">
+    <a class="wordmark" routerLink="/geburtstag" (click)="closeMenu(); onPageActivated()">Für Rubsi<span aria-hidden="true">✳</span></a>
+    <button class="menu-toggle" #menuToggle type="button" aria-controls="page-navigation" [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">{{ menuOpen() ? 'Schließen ✕' : 'Menü ☰' }}</button>
+  </div>
+  <nav id="page-navigation" aria-label="Seiten" [class.mobile-open]="menuOpen()" (keydown.escape)="closeMenu(); menuToggle.focus()">
+    <p class="nav-caption">Deine Geburtstagsseite</p>
+    <a routerLink="/geburtstag" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(); onPageActivated()"><span aria-hidden="true">✳</span> Geburtstag</a>
+    <a routerLink="/wuensche" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu(); onPageActivated()"><span aria-hidden="true">♡</span> Wünsche</a>
+  </nav>
+  <p class="nav-note">Ein kleines Stück<br>Geburtstagsglück für dich.</p>
+</aside>
+<div class="page-shell">
+  <main id="page-content" #pageContent #focusContent tabindex="-1">
+    <router-outlet (activate)="onPageActivated()" />
+  </main>
+  <footer><span>Mit Liebe gemacht. Für Rubsi.</span><a routerLink="/geburtstag">Zur Geburtstagsseite ↗</a></footer>
+</div>

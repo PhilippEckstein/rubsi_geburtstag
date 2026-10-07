@@ -1,4 +1,4 @@
-﻿# Rubsis Geburtstagsseite
+# Rubsis Geburtstagsseite
 
 Eine responsive Angular-21-Website mit automatischer Veröffentlichung über GitHub Actions.
 
@@ -15,9 +15,9 @@ Anschließend http://localhost:4200 öffnen.
 
 ## Inhalte ändern
 
-- `src/app/app.html`: Texte und Seitenaufbau.
-- `src/app/app.css`: Farben, Layout und Geburtstagsillustration.
-- `src/app/app.ts`: Interaktion des Überraschungsbuttons.
+- `src/app/pages/birthday.html` und `src/app/pages/wishes.html`: Texte und Seitenaufbau.
+- `src/styles.css`: Farben, Seitenlayout und Geburtstagsillustration.
+- `src/app/pages/birthday.ts`: Interaktion des Überraschungsbuttons.
 - `src/index.html`: Seitentitel und Beschreibung.
 - `public/`: Eigene Bilder und statische Dateien.
 
@@ -42,3 +42,15 @@ git push
 Der Pages-Build verwendet `/rubsi_geburtstag/` als Basispfad. Bei Umbenennung des Repositories muss der Pfad in `package.json` angepasst werden. Das Build-Ergebnis liegt unter `dist/rubsi-geburtstag/browser`.
 
 GitHub Pages veröffentlicht statische Dateien. Die Website braucht keinen Server und enthält keine serverseitigen Funktionen oder gespeicherten Formulare.
+
+## Seiten und Navigation
+
+Die App hat zwei Seiten: **Geburtstag** (`#/geburtstag`) und **Wünsche** (`#/wuensche`). Die Seitennavigation zeigt die aktive Seite an. Auf kleinen Bildschirmen lässt sie sich über den Menübutton öffnen und schließen.
+
+- `src/app/app.html` und `src/app/app.css`: App-Rahmen und Seitennavigation.
+- `src/app/app.routes.ts`: Routen und Seitentitel.
+- `src/app/pages/birthday.html` und `birthday.ts`: Geburtstagsseite und Überraschungsbutton.
+- `src/app/pages/wishes.html`: Wünsche-Seite.
+- `src/styles.css`: Gemeinsame Seitengestaltung.
+
+Das Hash-Routing sorgt dafür, dass direkte Links und Neuladen auf GitHub Pages ohne Server-Weiterleitungen funktionieren.

@@ -1,0 +1,29 @@
+﻿  <section class="hero" aria-labelledby="birthday-title">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span> Heute dreht sich alles um dich</p>
+      <h1 id="birthday-title" tabindex="-1">Happy<br>Birthday,<br><span>Rubsi!</span></h1>
+      <p class="intro">Auf dich, auf die kleinen Glücksmomente und auf ein neues Jahr voller schöner Geschichten.</p>
+      <button class="primary-button" type="button" (click)="openSurprise()">Eine kleine Überraschung <span aria-hidden="true">↗</span></button>
+      <div class="surprise" role="status" aria-live="polite">
+        @if (surpriseOpen()) {
+          <p>🎉 Schön, dass es dich gibt, Rubsi! Diese kleine Seite ist nur für dich. Alles Liebe zum Geburtstag! 💛</p>
+        }
+      </div>
+    </div>
+    <div class="birthday-art" role="img" aria-label="Eine Geburtstagskarte mit einer Torte, drei Kerzen und bunten Sternen">
+      <span class="art-note">a little birthday magic</span>
+      <span class="spark spark-one" aria-hidden="true">✦</span>
+      <span class="spark spark-two" aria-hidden="true">✳</span>
+      <span class="spark spark-three" aria-hidden="true">✦</span>
+      <div class="cake" aria-hidden="true">
+        <div class="candles"><i></i><i></i><i></i></div>
+        <div class="cake-top"></div>
+        <div class="cake-body"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="cake-base"></div>
+      </div>
+      <span class="art-caption">MAKE A WISH.</span>
+      <span class="art-sticker" aria-hidden="true">100%<br>für dich</span>
+    </div>
+  </section>
+  <div class="ribbon" aria-hidden="true"><span>Konfetti im Herzen ✳ Kuchen auf dem Teller ✳ Lieblingsmenschen an deiner Seite ✳</span></div>
+
