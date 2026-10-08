@@ -6,8 +6,11 @@
   <figure class="gift-photo">
     <img src="images/lama-geschenk.png" width="1122" height="1402" alt="Ein lächelnder Mann sitzt auf einem Lama vor einem Bergpanorama und zeigt den Daumen nach oben." decoding="async">
   </figure>
-  <figure class="gift-meme">
-    <img src="memes/drachenlord-hardstyle.png" width="1254" height="1254" alt="Drachenlord als überraschte Comicfigur vor Lautsprechern. Meme-Text: Ich: Nur kurz das Geschenk öffnen. Die Website: 320 BPM Hardstyle." decoding="async">
+  <figure class="gift-video">
+    <div class="short-player">
+      <iframe src="https://www.youtube.com/embed/TOqqfboxjPc?playsinline=1&amp;rel=0" title="Schwäbisches Meme – YouTube Short" width="360" height="640" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </div>
+    <figcaption><a href="https://www.youtube.com/shorts/TOqqfboxjPc" target="_blank" rel="noopener noreferrer">Video auf YouTube öffnen ↗</a></figcaption>
   </figure>
   <div class="gift-actions">
     <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted() || startPending()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>

@@ -16,6 +16,9 @@
 .prank-dialog img { display: block; width: 100%; height: min(38dvh, 300px); object-fit: contain; background: #e9dfc8; }
 .prank-dialog h2 { font-size: clamp(18px, 3vw, 23px); line-height: 1.25; letter-spacing: -.5px; margin: 0; padding: 18px 14px 22px; text-align: center; }
 @media (max-width: 600px) { .gift-page { padding-top: 30px; } .gift-photo img { border-radius: 12px; } .prank-dialog { --dialog-offset: 0px; } }
-.gift-meme { width: min(100%, 550px); margin: 32px auto 0; }
-.gift-meme img { display: block; width: 100%; height: auto; border-radius: 18px; box-shadow: 0 12px 35px #29352d18; }
 .music-status { color: #69685e; font-size: 14px; text-align: center; line-height: 1.6; }
+.gift-video { width: min(100%, 360px); margin: 32px auto 0; }
+.short-player { width: 100%; aspect-ratio: 9 / 16; border-radius: 18px; overflow: hidden; background: #29352d; box-shadow: 0 12px 35px #29352d18; }
+.short-player iframe { display: block; width: 100%; height: 100%; border: 0; }
+.gift-video figcaption { text-align: center; font-size: 13px; line-height: 1.6; padding-top: 14px; color: #69685e; }
+.gift-video figcaption a { text-decoration: underline; text-underline-offset: 3px; }

@@ -79,8 +79,12 @@ Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Butt
 
 `npm run test:gift` prüft sowohl die zehn Sekunden Wartezeit auf Seite eins als auch die fünf Dialoge, den Stop-Button und die Audio-Aufräumlogik.
 
-## Drachenlord-Meme
+## Früheres Drachenlord-Meme
 
-Auf der zweiten Seite steht unter dem Lama-Foto zusätzlich ein mit dem integrierten Imagegen-Tool erstelltes Meme: `public/memes/drachenlord-hardstyle.png`.
+Das zuvor verwendete, mit dem integrierten Imagegen-Tool erstellte Meme bleibt als ungenutzte Bilddatei im Projekt: `public/memes/drachenlord-hardstyle.png`.
 
 Motiv/Prompt: Drachenlord als überraschte Comicfigur, die auf eine Geburtstagswebsite mit sehr schnellem Hardstyle reagiert. Große weiße Meme-Schrift mit schwarzer Kontur. Oberer Text: "ICH: NUR KURZ DAS GESCHENK ÖFFNEN". Unterer Text: "DIE WEBSITE: 320 BPM HARDSTYLE". Quadratisches Bild mit Lautsprechern im Hintergrund.
+
+## Video auf der Geschenkseite
+
+Unter dem Lama-Foto ist statt des Drachenlord-Bilds dieses YouTube-Short eingebettet: https://www.youtube.com/shorts/TOqqfboxjPc. Der Player hat ein responsives Hochformat (9:16) und wird per Play-Klick gestartet. Ein Link darunter öffnet das Original auf YouTube. Der Hardstyle-Loop und der Geschenkbutton mit fünf Fotodialogen bleiben davon unabhängig.
