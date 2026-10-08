@@ -1,5 +1,5 @@
 import { Component, ElementRef, Injector, OnDestroy, QueryList, ViewChild, ViewChildren, afterNextRender, inject, signal } from '@angular/core';
-import { HardtekPlayer } from './hardtek-player';
+import { CantinaPlayer } from './cantina-player';
 
 @Component({
   selector: 'app-wishes',
@@ -11,10 +11,12 @@ export class Wishes implements OnDestroy {
   protected readonly activeDialogs = signal<number[]>([]);
   protected readonly audioError = signal(false);
   private readonly injector = inject(Injector);
-  private readonly music = new HardtekPlayer();
+  private readonly music = new CantinaPlayer();
   private destroyed = false;
   @ViewChildren('prankDialog') private dialogs?: QueryList<ElementRef<HTMLDialogElement>>;
   @ViewChild('stopButton') private stopButton?: ElementRef<HTMLButtonElement>;
+
+  @ViewChild('songContainer') private songContainer?: ElementRef<HTMLElement>;
 
   protected startPrank(): void {
     if (this.prankStarted()) return;
@@ -22,7 +24,7 @@ export class Wishes implements OnDestroy {
     this.prankStarted.set(true);
     this.activeDialogs.set([1, 2, 3, 4, 5]);
     // Starting in the click handler lets browsers play the audio immediately.
-    void this.music.start().catch(() => {
+    void this.music.start(this.songContainer?.nativeElement).catch(() => {
       if (!this.destroyed && this.prankStarted()) this.audioError.set(true);
     });
     afterNextRender(() => {
@@ -38,7 +40,7 @@ export class Wishes implements OnDestroy {
   protected onDialogClosed(id: number): void {
     if (this.destroyed) return;
     this.activeDialogs.update(dialogs => dialogs.filter(dialogId => dialogId !== id));
-    // Keep the beat running after the last dialog until the stop button is used.
+    // Keep the song looping after the last dialog until the stop button is used.
     if (this.activeDialogs().length === 0) {
       afterNextRender(() => this.stopButton?.nativeElement.focus(), { injector: this.injector });
     }

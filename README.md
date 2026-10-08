@@ -69,12 +69,12 @@ Prüfen: `npm run test:gift` und `npm run build:pages`. Die Logiktests laufen au
 
 Erstellt mit dem integrierten Imagegen-Tool. Motiv/Prompt: Peter Griffin sitzt erschöpft und genervt mit einer Computermaus auf seinem Sofa im Family-Guy-Zeichenstil. Quadratisches Meme mit großer weißer Schrift und schwarzer Kontur. Oberer Text: "ICH NACH 10 SEKUNDEN BUTTON-JAGD". Unterer Text: "WO IST MEIN GESCHENK?". Keine weiteren Figuren oder Wasserzeichen.
 
-## Lama-Geschenk und Hardtek-Streich
+## Lama-Geschenk und Cantina-Band-Streich
 
 Die zweite Seite zeigt `public/images/lama-geschenk.png`. **Hier kommt dein Geschenk** öffnet gleichzeitig fünf übereinanderliegende native Dialoge mit `public/images/garden-prank.png` und dem Text **Hahah du bist so ein Idiot**. Beide Bilder wurden unverändert aus den bereitgestellten Anhängen übernommen.
 
-Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Hardtek beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle fünf geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach kann der Streich erneut gestartet werden.
+Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Song beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle fünf geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach kann der Streich erneut gestartet werden.
 
-`src/app/pages/hardtek-player.ts` erzeugt lokal einen Hardtek-Loop mit 260 BPM, stark verzerrter Kick, langen rauen Kick-Tails, Kick-Rolls, übersteuertem Offbeat-Bass, Hi-Hats, Snare und schnellen metallischen Synth-Stabs über die Web Audio API. Der Start erfolgt durch den Geschenkbutton, ohne externe Audioanfragen oder Musikdateien. Bei Verlassen der Seite werden die Musik und alle Dialoge aufgeräumt.
+`src/app/pages/cantina-player.ts` spielt die gewünschte Aufnahme **Spielt den selben Song nochmal — Cantina Band / Blue Harvest** über den YouTube-Player (https://www.youtube.com/watch?v=PgKw__lWALI). Der Player wird erst beim Geschenk-Klick geladen und verwendet `autoplay=1`, `loop=1` und `playlist=PgKw__lWALI`. Beim Stoppen oder Verlassen der Seite wird der Player entfernt. Die Wiedergabe braucht Internetzugang; Browser können automatischen Ton blockieren. Der sichtbare Player bietet dann nach dem Schließen der Dialoge die normale Wiedergabesteuerung.
 
 `npm run test:gift` prüft sowohl die zehn Sekunden Wartezeit auf Seite eins als auch die fünf Dialoge, den Stop-Button und die Audio-Aufräumlogik.

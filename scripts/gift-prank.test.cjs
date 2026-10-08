@@ -32,7 +32,7 @@ function setupPage() {
     inject: () => ({}), afterNextRender: callback => renders.push(callback),
   };
   const { Wishes } = load('src/app/pages/wishes.ts', {
-    '@angular/core': core, './hardtek-player': { HardtekPlayer: Music },
+    '@angular/core': core, './cantina-player': { CantinaPlayer: Music },
   }, { document: { getElementById: () => ({ focus: () => stats.triggerFocused++ }) } });
   const page = new Wishes();
   const elements = [1, 2, 3, 4, 5].map(id => ({ nativeElement: {
@@ -87,57 +87,52 @@ test('leaving the page closes dialogs and releases audio, a delayed render canno
   assert.ok(elements.every(element => !element.nativeElement.open));
 });
 
-function setupAudio(rejectResume = false) {
-  const contexts = [];
-  class AudioContext {
-    constructor() {
-      this.sampleRate = 2000;
-      this.state = 'suspended';
-      this.destination = {};
-      this.closed = 0;
-      contexts.push(this);
-    }
-    createBuffer(channels, frames) {
-      this.samples = new Float32Array(frames);
-      return { getChannelData: () => this.samples };
-    }
-    createBufferSource() {
-      this.source = { connect() {}, disconnect() {}, starts: 0, stops: 0, start() { this.starts++; }, stop() { this.stops++; } };
-      return this.source;
-    }
-    createGain() { return { gain: { value: 0 }, connect() {} }; }
-    async resume() { if (rejectResume) throw new Error('Audio blocked'); this.state = 'running'; }
-    async close() { this.state = 'closed'; this.closed++; }
-  }
-  const { HardtekPlayer } = load('src/app/pages/hardtek-player.ts', {}, { AudioContext });
-  return { player: new HardtekPlayer(), contexts };
+function setupSong() {
+  const frames = [];
+  const host = { children: [], appendChild(frame) { this.children.push(frame); } };
+  const { CantinaPlayer } = load('src/app/pages/cantina-player.ts', {}, {
+    URL, URLSearchParams,
+    window: { location: { origin: 'https://philippeckstein.github.io' } },
+    document: { createElement(tag) {
+      assert.equal(tag, 'iframe');
+      const frame = { style: {}, removed: 0, remove() { this.removed++; host.children = host.children.filter(item => item !== this); } };
+      frames.push(frame);
+      return frame;
+    } },
+  });
+  return { player: new CantinaPlayer(), host, frames };
 }
 
-test('hardtek loop contains bounded nonzero audio, loops, and cleans up without overlap', async () => {
-  const { player, contexts } = setupAudio();
-  await player.start();
-  const first = contexts[0];
-  assert.equal(first.source.loop, true);
-  assert.equal(first.samples.length, 14770); // 32 beats at 260 BPM, 2000 Hz test sample rate.
-  assert.equal(first.source.starts, 1);
-  let energy = 0;
-  for (const sample of first.samples) {
-    assert.ok(Number.isFinite(sample));
-    assert.ok(Math.abs(sample) <= 0.28);
-    energy += Math.abs(sample);
-  }
-  assert.ok(energy > 100);
-  await player.start();
-  assert.equal(first.closed, 1);
-  assert.equal(first.source.stops, 1);
-  player.stop(); player.stop();
-  assert.equal(contexts[1].closed, 1);
-  assert.equal(contexts[1].source.stops, 1);
+test('requested Cantina recording starts with autoplay and a single-video loop', async () => {
+  const { player, host, frames } = setupSong();
+  await player.start(host);
+  assert.equal(host.children.length, 1);
+  const url = new URL(frames[0].src);
+  assert.equal(url.origin, 'https://www.youtube.com');
+  assert.equal(url.pathname, '/embed/PgKw__lWALI');
+  assert.equal(url.searchParams.get('autoplay'), '1');
+  assert.equal(url.searchParams.get('loop'), '1');
+  assert.equal(url.searchParams.get('playlist'), 'PgKw__lWALI');
+  assert.equal(url.searchParams.get('origin'), 'https://philippeckstein.github.io');
+  assert.equal(frames[0].referrerPolicy, 'strict-origin-when-cross-origin');
+  assert.ok(frames[0].allow.includes('autoplay'));
 });
 
-test('blocked audio releases the context instead of leaving an orphaned loop', async () => {
-  const { player, contexts } = setupAudio(true);
-  await assert.rejects(player.start(), /Audio blocked/);
-  assert.equal(contexts[0].closed, 1);
-  assert.equal(contexts[0].source.stops, 1);
+test('stop removes the playback frame and repeated starts never overlap', async () => {
+  const { player, host, frames } = setupSong();
+  await player.start(host);
+  await player.start(host);
+  assert.equal(frames[0].removed, 1);
+  assert.equal(host.children.length, 1);
+  player.stop(); player.stop();
+  assert.equal(frames[1].removed, 1);
+  assert.equal(host.children.length, 0);
+});
+
+test('a missing playback container is reported and cleans up the previous song', async () => {
+  const { player, host, frames } = setupSong();
+  await player.start(host);
+  await assert.rejects(player.start(), /container is not available/);
+  assert.equal(frames[0].removed, 1);
+  assert.equal(host.children.length, 0);
 });

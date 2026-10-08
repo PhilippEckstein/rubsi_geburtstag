@@ -9,13 +9,17 @@
   <div class="gift-actions">
     <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
   </div>
+  <div class="song-section" [hidden]="!prankStarted()">
+    <p>Cantina Band · Spielt den selben Song nochmal</p>
+    <div #songContainer class="song-player"></div>
+  </div>
 </section>
 
 @if (prankStarted()) {
   <div class="stop-stage">
     <div class="stop-panel">
       <p>Genug gefeiert?</p>
-      <button #stopButton class="primary-button" type="button" [disabled]="activeDialogs().length > 0" (click)="stopPrank()">Hardtek beenden ■</button>
+      <button #stopButton class="primary-button" type="button" [disabled]="activeDialogs().length > 0" (click)="stopPrank()">Song beenden ■</button>
       <p class="remaining" role="status" aria-live="polite">{{ activeDialogs().length > 0 ? 'Noch ' + activeDialogs().length + ' Dialoge schließen.' : 'Alle Dialoge sind weg. Jetzt kannst du die Musik beenden.' }}</p>
       @if (audioError()) { <p class="remaining">Dein Browser konnte die Musik nicht starten.</p> }
     </div>

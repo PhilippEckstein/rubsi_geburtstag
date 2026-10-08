@@ -16,3 +16,7 @@
 .prank-dialog img { display: block; width: 100%; height: min(38dvh, 300px); object-fit: contain; background: #e9dfc8; }
 .prank-dialog h2 { font-size: clamp(18px, 3vw, 23px); line-height: 1.25; letter-spacing: -.5px; margin: 0; padding: 18px 14px 22px; text-align: center; }
 @media (max-width: 600px) { .gift-page { padding-top: 30px; } .gift-photo img { border-radius: 12px; } .prank-dialog { --dialog-offset: 0px; } }
+.song-section { max-width: 550px; margin: 28px auto 0; }
+.song-section > p { font-size: 13px; line-height: 1.6; color: #69685e; text-align: center; }
+.song-player { height: 310px; border-radius: 12px; overflow: hidden; background: #29352d; }
+@media (max-width: 600px) { .song-player { height: 220px; } }
