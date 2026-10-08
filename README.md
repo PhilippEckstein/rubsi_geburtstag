@@ -69,12 +69,18 @@ Prüfen: `npm run test:gift` und `npm run build:pages`. Die Logiktests laufen au
 
 Erstellt mit dem integrierten Imagegen-Tool. Motiv/Prompt: Peter Griffin sitzt erschöpft und genervt mit einer Computermaus auf seinem Sofa im Family-Guy-Zeichenstil. Quadratisches Meme mit großer weißer Schrift und schwarzer Kontur. Oberer Text: "ICH NACH 10 SEKUNDEN BUTTON-JAGD". Unterer Text: "WO IST MEIN GESCHENK?". Keine weiteren Figuren oder Wasserzeichen.
 
-## Lama-Geschenk und Cantina-Band-Streich
+## Lama-Geschenk und Hardstyle-Streich
 
 Die zweite Seite zeigt `public/images/lama-geschenk.png`. **Hier kommt dein Geschenk** öffnet gleichzeitig fünf übereinanderliegende native Dialoge mit `public/images/garden-prank.png` und dem Text **Hahah du bist so ein Idiot**. Beide Bilder wurden unverändert aus den bereitgestellten Anhängen übernommen.
 
-Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Song beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle fünf geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach kann der Streich erneut gestartet werden.
+Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Hardstyle beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle fünf geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach kann der Streich erneut gestartet werden.
 
-`src/app/pages/cantina-player.ts` spielt die gewünschte Aufnahme **Spielt den selben Song nochmal — Cantina Band / Blue Harvest** über den YouTube-Player (https://www.youtube.com/watch?v=PgKw__lWALI). Der sichtbare Player wird beim Öffnen der Geschenkseite ohne automatische Wiedergabe vorbereitet (`autoplay=0`, `enablejsapi=1`, `loop=1`, `playlist=PgKw__lWALI`). Sobald er bereit ist, wird der Geschenkbutton aktiv. Sein Klick ruft synchron `unMute()` und `playVideo()` auf. Die fünf Dialoge öffnen sich erst beim bestätigten YouTube-Ereignis PLAYING. Falls der Browser die Wiedergabe blockiert, bleiben die Dialoge geschlossen und ein Hinweis fordert zum direkten Play-Klick im Video auf; dieser startet anschließend auch die Dialoge. Beim Stoppen wird das Video angehalten, beim Verlassen der Seite wird der Player entfernt. Die Wiedergabe braucht Internetzugang.
+`src/app/pages/hardstyle-player.ts` erzeugt lokal einen Loop mit 320 BPM, stark verzerrten Kicks, Kick-Rolls, Offbeat-Bass und einem schnellen verstimmten Hardstyle-Synth. Der Start läuft direkt im Geschenk-Klick über die Web Audio API. Es gibt keinen YouTube-Player und keine externen Musik-Anfragen. Die Dialoge öffnen sich nach erfolgreichem Audio-Start. Bei Verlassen der Seite werden Musik und Dialoge beendet.
 
 `npm run test:gift` prüft sowohl die zehn Sekunden Wartezeit auf Seite eins als auch die fünf Dialoge, den Stop-Button und die Audio-Aufräumlogik.
+
+## Drachenlord-Meme
+
+Auf der zweiten Seite steht unter dem Lama-Foto zusätzlich ein mit dem integrierten Imagegen-Tool erstelltes Meme: `public/memes/drachenlord-hardstyle.png`.
+
+Motiv/Prompt: Drachenlord als überraschte Comicfigur, die auf eine Geburtstagswebsite mit sehr schnellem Hardstyle reagiert. Große weiße Meme-Schrift mit schwarzer Kontur. Oberer Text: "ICH: NUR KURZ DAS GESCHENK ÖFFNEN". Unterer Text: "DIE WEBSITE: 320 BPM HARDSTYLE". Quadratisches Bild mit Lautsprechern im Hintergrund.

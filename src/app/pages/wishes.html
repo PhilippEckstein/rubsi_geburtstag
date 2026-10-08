@@ -6,34 +6,22 @@
   <figure class="gift-photo">
     <img src="images/lama-geschenk.png" width="1122" height="1402" alt="Ein lächelnder Mann sitzt auf einem Lama vor einem Bergpanorama und zeigt den Daumen nach oben." decoding="async">
   </figure>
+  <figure class="gift-meme">
+    <img src="memes/drachenlord-hardstyle.png" width="1254" height="1254" alt="Drachenlord als überraschte Comicfigur vor Lautsprechern. Meme-Text: Ich: Nur kurz das Geschenk öffnen. Die Website: 320 BPM Hardstyle." decoding="async">
+  </figure>
   <div class="gift-actions">
-    <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted() || startPending() || !songReady()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
+    <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted() || startPending()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
   </div>
-  <div class="song-section">
-    <p>Cantina Band · Spielt den selben Song nochmal</p>
-    <div #songContainer class="song-player"></div>
-    <div class="song-status" role="status" aria-live="polite">
-      @if (audioError()) {
-        <p>YouTube konnte nicht geladen werden.</p>
-        <button class="primary-button" type="button" (click)="prepareSong()">Musik neu laden</button>
-      } @else if (!songReady()) {
-        <p>Musik wird vorbereitet …</p>
-      } @else if (autoplayBlocked()) {
-        <p>Drück Play direkt im Video. Sobald die Musik läuft, kommt dein Geschenk!</p>
-      } @else if (startPending()) {
-        <p>Musik startet …</p>
-      }
-    </div>
-  </div>
+  @if (audioError()) { <p class="music-status" role="alert">Die Musik konnte nicht starten. Klick noch einmal auf den Geschenkbutton.</p> }
 </section>
 
 @if (prankStarted()) {
   <div class="stop-stage">
     <div class="stop-panel">
       <p>Genug gefeiert?</p>
-      <button #stopButton class="primary-button" type="button" [disabled]="activeDialogs().length > 0" (click)="stopPrank()">Song beenden ■</button>
+      <button #stopButton class="primary-button" type="button" [disabled]="activeDialogs().length > 0" (click)="stopPrank()">Hardstyle beenden ■</button>
       <p class="remaining" role="status" aria-live="polite">{{ activeDialogs().length > 0 ? 'Noch ' + activeDialogs().length + ' Dialoge schließen.' : 'Alle Dialoge sind weg. Jetzt kannst du die Musik beenden.' }}</p>
-      @if (audioError()) { <p class="remaining">Dein Browser konnte die Musik nicht starten.</p> }
+
     </div>
   </div>
 }

@@ -20,27 +20,21 @@ const signal = initial => {
   return read;
 };
 const decorator = () => () => {};
-function setupPage(playsImmediately = true) {
+function setupPage(startFailure = false, pendingStart = undefined) {
   const renders = [];
   const stats = { starts: 0, stops: 0, shown: 0, stopFocused: 0, triggerFocused: 0 };
-  let music;
   class Music {
-    constructor(callbacks) { this.callbacks = callbacks; music = this; }
-    async prepare() {}
-    start() { stats.starts++; if (playsImmediately) this.callbacks.onPlaying(); }
+    async start() { stats.starts++; if (startFailure) throw new Error("Audio blocked"); if (pendingStart) await pendingStart; }
     stop() { stats.stops++; }
-    destroy() { stats.stops++; }
   }
   const core = {
     Component: decorator, ViewChild: decorator, ViewChildren: decorator, signal,
     inject: () => ({}), afterNextRender: callback => renders.push(callback),
   };
   const { Wishes } = load('src/app/pages/wishes.ts', {
-    '@angular/core': core, './cantina-player': { CantinaPlayer: Music },
+    '@angular/core': core, './hardstyle-player': { HardstylePlayer: Music },
   }, { document: { getElementById: () => ({ focus: () => stats.triggerFocused++ }) } });
   const page = new Wishes();
-  page.songReady.set(true);
-  page.songContainer = { nativeElement: { scrollIntoView() {} } };
   const elements = [1, 2, 3, 4, 5].map(id => ({ nativeElement: {
     open: false,
     showModal() { this.open = true; stats.shown++; },
@@ -49,13 +43,13 @@ function setupPage(playsImmediately = true) {
   page.dialogs = { forEach: callback => elements.forEach(callback) };
   page.stopButton = { nativeElement: { focus: () => stats.stopFocused++ } };
   const render = () => { while (renders.length) renders.shift()(); };
-  return { page, stats, elements, render, music };
+  return { page, stats, elements, render };
 }
 
-test('gift click opens exactly five dialogs and only one audio loop', () => {
+test('gift click opens exactly five dialogs and only one audio loop', async () => {
   const { page, stats, render } = setupPage();
-  page.startPrank();
-  page.startPrank();
+  await page.startPrank();
+  await page.startPrank();
   assert.equal(page.activeDialogs().length, 5);
   assert.deepEqual(Array.from(page.activeDialogs()), [1, 2, 3, 4, 5]);
   assert.equal(stats.starts, 1);
@@ -63,9 +57,9 @@ test('gift click opens exactly five dialogs and only one audio loop', () => {
   assert.equal(stats.shown, 5);
 });
 
-test('stop stays blocked until every dialog is gone, closing the last one does not stop audio', () => {
+test('stop stays blocked until every dialog is gone, closing the last one does not stop audio', async () => {
   const { page, stats, elements, render } = setupPage();
-  page.startPrank(); render();
+  await page.startPrank(); render();
   for (const element of elements.slice(0, 4)) {
     page.dismissDialog(element.nativeElement);
     page.stopPrank();
@@ -83,9 +77,9 @@ test('stop stays blocked until every dialog is gone, closing the last one does n
   assert.equal(stats.triggerFocused, 1);
 });
 
-test('leaving the page closes dialogs and releases audio, a delayed render cannot reopen them', () => {
+test('leaving the page closes dialogs and releases audio, a delayed render cannot reopen them', async () => {
   const { page, stats, elements, render } = setupPage();
-  page.startPrank();
+  await page.startPrank();
   page.ngOnDestroy();
   render();
   assert.equal(stats.stops, 1);
@@ -93,148 +87,82 @@ test('leaving the page closes dialogs and releases audio, a delayed render canno
   assert.ok(elements.every(element => !element.nativeElement.open));
 });
 
-test('blocked autoplay leaves the video accessible and opens dialogs only after a real Play click', () => {
-  const { page, stats, render, music } = setupPage(false);
-  page.startPrank(); render();
-  assert.equal(page.startPending(), true);
-  assert.equal(page.prankStarted(), false);
-  assert.equal(page.activeDialogs().length, 0);
-  assert.equal(stats.shown, 0);
-  music.callbacks.onBlocked();
-  assert.equal(page.autoplayBlocked(), true);
-  music.callbacks.onPlaying(); render();
-  assert.equal(page.prankStarted(), true);
-  assert.equal(page.autoplayBlocked(), false);
-  assert.equal(stats.shown, 5);
-  music.callbacks.onPlaying(); render();
-  assert.equal(stats.shown, 5);
-});
-
-test('gift click waits for readiness and a player failure does not open dialogs', () => {
-  const { page, stats, music } = setupPage(false);
-  page.songReady.set(false);
-  page.startPrank();
-  assert.equal(stats.starts, 0);
-  page.songReady.set(true);
-  page.startPrank();
-  music.callbacks.onError();
-  assert.equal(page.audioError(), true);
-  assert.equal(page.startPending(), false);
-  assert.equal(page.activeDialogs().length, 0);
-});
-
-function setupSong(apiInitiallyReady = true) {
-  const frames = [];
-  const players = [];
-  const scripts = [];
-  const timers = new Map();
-  let timerId = 0;
-  const calls = { playing: 0, blocked: 0, errors: 0 };
-  const host = { children: [], appendChild(frame) { this.children.push(frame); } };
-  class Player {
-    constructor(frame, options) {
-      this.events = options.events;
-      this.state = 5;
-      this.actions = [];
-      frame.player = this;
-      players.push(this);
+function setupAudio(rejectResume = false) {
+  const contexts = [];
+  class AudioContext {
+    constructor() {
+      this.sampleRate = 2000;
+      this.state = 'suspended';
+      this.destination = {};
+      this.closed = 0;
+      contexts.push(this);
     }
-    unMute() { this.actions.push('unmute'); }
-    setVolume(value) { this.actions.push('volume:' + value); }
-    playVideo() { this.actions.push('play'); }
-    getPlayerState() { return this.state; }
-    stopVideo() { this.actions.push('stop'); }
-    destroy() { this.actions.push('destroy'); }
+    createBuffer(channels, frames) {
+      this.samples = new Float32Array(frames);
+      return { getChannelData: () => this.samples };
+    }
+    createBufferSource() {
+      this.source = { connect() {}, disconnect() {}, starts: 0, stops: 0, start() { this.starts++; }, stop() { this.stops++; } };
+      return this.source;
+    }
+    createGain() { return { gain: { value: 0 }, connect() {} }; }
+    async resume() { if (rejectResume) throw new Error('Audio blocked'); this.state = 'running'; }
+    async close() { this.state = 'closed'; this.closed++; }
   }
-  const scope = { location: { origin: 'https://philippeckstein.github.io' } };
-  if (apiInitiallyReady) scope.YT = { Player };
-  const { CantinaPlayer } = load('src/app/pages/cantina-player.ts', {}, {
-    URL, URLSearchParams, window: scope,
-    setTimeout: (callback, delay) => { timers.set(++timerId, { callback, delay }); return timerId; },
-    clearTimeout: id => timers.delete(id),
-    document: {
-      head: { appendChild(script) { scripts.push(script); } },
-      createElement(tag) {
-        const element = { style: {}, removed: 0, remove() { this.removed++; host.children = host.children.filter(item => item !== this); } };
-        if (tag === 'iframe') frames.push(element);
-        else assert.equal(tag, 'script');
-        return element;
-      },
-    },
-  });
-  const player = new CantinaPlayer({
-    onPlaying: () => calls.playing++, onBlocked: () => calls.blocked++, onError: () => calls.errors++,
-  });
-  const prepare = async () => {
-    const promise = player.prepare(host);
-    await Promise.resolve();
-    players.at(-1).events.onReady({ target: players.at(-1) });
-    await promise;
-  };
-  return { player, host, frames, players, calls, timers, prepare, scope, scripts, Player };
+  const { HardstylePlayer } = load('src/app/pages/hardstyle-player.ts', {}, { AudioContext });
+  return { player: new HardstylePlayer(), contexts };
 }
 
-test('Cantina player preloads without autoplay, enables API control and retains the single-video loop', async () => {
-  const s = setupSong();
-  await s.prepare();
-  const url = new URL(s.frames[0].src);
-  assert.equal(url.origin, 'https://www.youtube.com');
-  assert.equal(url.pathname, '/embed/PgKw__lWALI');
-  assert.equal(url.searchParams.get('autoplay'), '0');
-  assert.equal(url.searchParams.get('enablejsapi'), '1');
-  assert.equal(url.searchParams.get('loop'), '1');
-  assert.equal(url.searchParams.get('playlist'), 'PgKw__lWALI');
-  assert.equal(s.calls.playing, 0);
-  assert.equal(s.players[0].actions.length, 0);
-  s.player.start();
-  assert.deepEqual(s.players[0].actions, ['unmute', 'volume:75', 'play']);
-  assert.equal(s.calls.playing, 0);
-  s.players[0].events.onStateChange({ data: 1 });
-  assert.equal(s.calls.playing, 1);
-  assert.equal(s.timers.size, 0);
+test('320 BPM hardstyle loop contains bounded nonzero audio, loops, and cleans up without overlap', async () => {
+  const { player, contexts } = setupAudio();
+  await player.start();
+  const first = contexts[0];
+  assert.equal(first.source.loop, true);
+  assert.equal(first.samples.length, 12000);
+  assert.equal(first.source.starts, 1);
+  let energy = 0;
+  for (const sample of first.samples) {
+    assert.ok(Number.isFinite(sample));
+    assert.ok(Math.abs(sample) <= 0.28);
+    energy += Math.abs(sample);
+  }
+  assert.ok(energy > 100);
+  await player.start();
+  assert.equal(first.closed, 1);
+  assert.equal(first.source.stops, 1);
+  player.stop(); player.stop();
+  assert.equal(contexts[1].closed, 1);
+  assert.equal(contexts[1].source.stops, 1);
 });
 
-test('autoplay-blocked and timeout events request manual Play without claiming success', async () => {
-  const s = setupSong();
-  await s.prepare();
-  s.player.start();
-  s.players[0].events.onAutoplayBlocked({});
-  assert.equal(s.calls.blocked, 1);
-  assert.equal(s.calls.playing, 0);
-  assert.equal(s.timers.size, 0);
-  s.player.start();
-  const timeout = [...s.timers.values()].find(timer => timer.delay === 4000);
-  assert.ok(timeout);
-  timeout.callback();
-  assert.equal(s.calls.blocked, 2);
-  s.players[0].events.onStateChange({ data: 1 });
-  assert.equal(s.calls.playing, 1);
+test('blocked audio releases the context instead of leaving an orphaned loop', async () => {
+  const { player, contexts } = setupAudio(true);
+  await assert.rejects(player.start(), /Audio blocked/);
+  assert.equal(contexts[0].closed, 1);
+  assert.equal(contexts[0].source.stops, 1);
 });
 
-test('stop preserves the prepared player for another gesture; destroy prevents late playback events', async () => {
-  const s = setupSong();
-  await s.prepare();
-  s.player.start();
-  s.player.stop();
-  assert.equal(s.timers.size, 0);
-  assert.equal(s.host.children.length, 1);
-  assert.equal(s.players[0].actions.at(-1), 'stop');
-  s.player.start();
-  s.player.destroy();
-  assert.equal(s.host.children.length, 0);
-  assert.equal(s.players[0].actions.at(-1), 'destroy');
-  s.players[0].events.onStateChange({ data: 1 });
-  assert.equal(s.calls.playing, 0);
+test('failed audio startup keeps the gift button retryable and does not open silent dialogs', async () => {
+  const { page, stats, render } = setupPage(true);
+  await page.startPrank(); render();
+  assert.equal(page.audioError(), true);
+  assert.equal(page.startPending(), false);
+  assert.equal(page.prankStarted(), false);
+  assert.equal(stats.shown, 0);
 });
 
-test('leaving during API loading cannot mount a late iframe; a missing container rejects', async () => {
-  const s = setupSong(false);
-  const preparing = s.player.prepare(s.host);
-  assert.equal(s.scripts[0].src, 'https://www.youtube.com/iframe_api');
-  s.player.destroy();
-  s.scope.YT = { Player: s.Player };
-  s.scope.onYouTubeIframeAPIReady();
-  await preparing;
-  assert.equal(s.frames.length, 0);
-  await assert.rejects(s.player.prepare(), /container is not available/);
+test('leaving while audio starts prevents the resolved startup from reopening the prank', async () => {
+  let resolve;
+  const pending = new Promise(done => { resolve = done; });
+  const { page, stats, render } = setupPage(false, pending);
+  const starting = page.startPrank();
+  page.startPrank();
+  assert.equal(stats.starts, 1);
+  page.ngOnDestroy();
+  resolve();
+  await starting;
+  render();
+  assert.equal(stats.stops, 1);
+  assert.equal(stats.shown, 0);
+  assert.equal(page.activeDialogs().length, 0);
 });
