@@ -75,6 +75,6 @@ Die zweite Seite zeigt `public/images/lama-geschenk.png`. **Hier kommt dein Gesc
 
 Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Hardtek beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle fünf geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach kann der Streich erneut gestartet werden.
 
-`src/app/pages/hardtek-player.ts` erzeugt lokal einen Hardtek-Loop mit 200 BPM, verzerrter Kick, Offbeat-Bass, Hi-Hats, Snare und Synth-Muster über die Web Audio API. Der Start erfolgt durch den Geschenkbutton, ohne externe Audioanfragen oder Musikdateien. Bei Verlassen der Seite werden die Musik und alle Dialoge aufgeräumt.
+`src/app/pages/hardtek-player.ts` erzeugt lokal einen Hardtek-Loop mit 260 BPM, stark verzerrter Kick, langen rauen Kick-Tails, Kick-Rolls, übersteuertem Offbeat-Bass, Hi-Hats, Snare und schnellen metallischen Synth-Stabs über die Web Audio API. Der Start erfolgt durch den Geschenkbutton, ohne externe Audioanfragen oder Musikdateien. Bei Verlassen der Seite werden die Musik und alle Dialoge aufgeräumt.
 
 `npm run test:gift` prüft sowohl die zehn Sekunden Wartezeit auf Seite eins als auch die fünf Dialoge, den Stop-Button und die Audio-Aufräumlogik.

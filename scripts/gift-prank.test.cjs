@@ -118,7 +118,7 @@ test('hardtek loop contains bounded nonzero audio, loops, and cleans up without 
   await player.start();
   const first = contexts[0];
   assert.equal(first.source.loop, true);
-  assert.equal(first.samples.length, 19200);
+  assert.equal(first.samples.length, 14770); // 32 beats at 260 BPM, 2000 Hz test sample rate.
   assert.equal(first.source.starts, 1);
   let energy = 0;
   for (const sample of first.samples) {

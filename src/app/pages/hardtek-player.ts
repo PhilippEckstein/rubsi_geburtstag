@@ -1,4 +1,4 @@
-/** Locally synthesized, looping 200 BPM hardtek beat. No external music requests. */
+/** Locally synthesized, looping 260 BPM hardtek beat. No external music requests. */
 export class HardtekPlayer {
   private context?: AudioContext;
   private source?: AudioBufferSourceNode;
@@ -7,7 +7,7 @@ export class HardtekPlayer {
     this.stop();
     const context = new AudioContext();
     this.context = context;
-    const beatDuration = 60 / 200;
+    const beatDuration = 60 / 260;
     const duration = beatDuration * 32;
     const buffer = context.createBuffer(1, Math.ceil(context.sampleRate * duration), context.sampleRate);
     const output = buffer.getChannelData(0);
@@ -18,29 +18,37 @@ export class HardtekPlayer {
       const time = i / context.sampleRate;
       const beat = Math.floor(time / beatDuration);
       const phase = time % beatDuration;
-      // Swept, distorted four-on-the-floor kick.
-      const kickPhase = 2 * Math.PI * (48 * phase + 150 * 0.018 * (1 - Math.exp(-phase / 0.018)));
-      const kick = Math.tanh(Math.sin(kickPhase) * 4.5) * Math.exp(-phase * 20);
-      // Short offbeat bass notes between kicks.
-      const bassTime = phase - beatDuration / 2;
-      const bassFrequency = 55 * Math.pow(2, (notes[Math.floor(beat / 2) % notes.length] - 33) / 12);
-      const bass = bassTime >= 0 ? Math.tanh(Math.sin(2 * Math.PI * bassFrequency * bassTime) * 3) * Math.exp(-bassTime * 24) : 0;
       seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
       const noise = (seed >>> 0) / 0xffffffff * 2 - 1;
       const highNoise = noise - previousNoise;
       previousNoise = noise;
+      // Saturated pitched kick with a longer crunchy tail and end-of-phrase rolls.
+      const kickTime = beat % 8 === 7 ? phase % (beatDuration / 2) : phase;
+      const kickPitch = [52, 52, 49, 55][Math.floor(beat / 8) % 4];
+      const kickPhase = 2 * Math.PI * (kickPitch * kickTime + 210 * 0.016 * (1 - Math.exp(-kickTime / 0.016)));
+      const kickWave = Math.sin(kickPhase) + Math.sin(kickPhase * 3) * 0.34;
+      const kick = Math.tanh(kickWave * 7) * Math.exp(-kickTime * 11);
+      const attack = highNoise * Math.exp(-kickTime * 240) * 0.22;
+      // Overdriven offbeat saw bass gives the kick a rough, rolling answer.
+      const bassTime = phase - beatDuration / 2;
+      const bassFrequency = 55 * Math.pow(2, (notes[Math.floor(beat / 2) % notes.length] - 33) / 12);
+      const bassSaw = 2 * ((Math.max(0, bassTime) * bassFrequency) % 1) - 1;
+      const bass = bassTime >= 0 ? Math.tanh(bassSaw * 5) * Math.exp(-bassTime * 18) : 0;
       const hatPhase = time % (beatDuration / 4);
-      const hat = highNoise * Math.exp(-hatPhase * 150) * 0.16;
-      const snare = beat % 2 === 1 ? highNoise * Math.exp(-phase * 36) * 0.19 : 0;
-      // Syncopated acid-style synth pattern over the beat.
-      const stepDuration = beatDuration / 2;
+      const hat = highNoise * Math.exp(-hatPhase * 125) * 0.22;
+      const snare = beat % 2 === 1 ? Math.tanh(highNoise * 2) * Math.exp(-phase * 32) * 0.28 : 0;
+      // Faster sixteenth-note stabs, octave lifts and metallic harmonics.
+      const stepDuration = beatDuration / 4;
       const step = Math.floor(time / stepDuration);
-      const synthPhase = time % stepDuration;
-      const frequency = 440 * Math.pow(2, (notes[step % notes.length] - 69) / 12);
-      const saw = 2 * ((synthPhase * frequency) % 1) - 1;
-      const synth = Math.tanh(saw * 1.7) * Math.exp(-synthPhase * 28) * 0.13;
+      const synthTime = time % stepDuration;
+      const note = notes[Math.floor(step / 2) % notes.length] + (beat % 4 >= 2 ? 24 : 12);
+      const frequency = 440 * Math.pow(2, (note - 69) / 12);
+      const saw = 2 * ((synthTime * frequency) % 1) - 1;
+      const metallic = Math.sin(2 * Math.PI * frequency * 1.5 * synthTime) * 0.3;
+      const synth = Math.tanh((saw + metallic) * 4) * Math.exp(-synthTime * 35) * 0.22;
       const edgeFade = Math.min(1, time / 0.004, (duration - time) / 0.004);
-      output[i] = Math.tanh(kick * 0.8 + bass * 0.38 + hat + snare + synth) * 0.28 * edgeFade;
+      // Harder timbre comes from distortion and rhythm; keep output bounded.
+      output[i] = Math.tanh((kick * 0.95 + bass * 0.42 + attack + hat + snare + synth) * 1.5) * 0.28 * edgeFade;
     }
     const source = context.createBufferSource();
     source.buffer = buffer;
