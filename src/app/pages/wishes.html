@@ -7,11 +7,23 @@
     <img src="images/lama-geschenk.png" width="1122" height="1402" alt="Ein lächelnder Mann sitzt auf einem Lama vor einem Bergpanorama und zeigt den Daumen nach oben." decoding="async">
   </figure>
   <div class="gift-actions">
-    <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
+    <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted() || startPending() || !songReady()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
   </div>
-  <div class="song-section" [hidden]="!prankStarted()">
+  <div class="song-section">
     <p>Cantina Band · Spielt den selben Song nochmal</p>
     <div #songContainer class="song-player"></div>
+    <div class="song-status" role="status" aria-live="polite">
+      @if (audioError()) {
+        <p>YouTube konnte nicht geladen werden.</p>
+        <button class="primary-button" type="button" (click)="prepareSong()">Musik neu laden</button>
+      } @else if (!songReady()) {
+        <p>Musik wird vorbereitet …</p>
+      } @else if (autoplayBlocked()) {
+        <p>Drück Play direkt im Video. Sobald die Musik läuft, kommt dein Geschenk!</p>
+      } @else if (startPending()) {
+        <p>Musik startet …</p>
+      }
+    </div>
   </div>
 </section>
 

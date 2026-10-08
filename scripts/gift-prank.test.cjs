@@ -20,12 +20,16 @@ const signal = initial => {
   return read;
 };
 const decorator = () => () => {};
-function setupPage() {
+function setupPage(playsImmediately = true) {
   const renders = [];
   const stats = { starts: 0, stops: 0, shown: 0, stopFocused: 0, triggerFocused: 0 };
+  let music;
   class Music {
-    async start() { stats.starts++; }
+    constructor(callbacks) { this.callbacks = callbacks; music = this; }
+    async prepare() {}
+    start() { stats.starts++; if (playsImmediately) this.callbacks.onPlaying(); }
     stop() { stats.stops++; }
+    destroy() { stats.stops++; }
   }
   const core = {
     Component: decorator, ViewChild: decorator, ViewChildren: decorator, signal,
@@ -35,6 +39,8 @@ function setupPage() {
     '@angular/core': core, './cantina-player': { CantinaPlayer: Music },
   }, { document: { getElementById: () => ({ focus: () => stats.triggerFocused++ }) } });
   const page = new Wishes();
+  page.songReady.set(true);
+  page.songContainer = { nativeElement: { scrollIntoView() {} } };
   const elements = [1, 2, 3, 4, 5].map(id => ({ nativeElement: {
     open: false,
     showModal() { this.open = true; stats.shown++; },
@@ -43,7 +49,7 @@ function setupPage() {
   page.dialogs = { forEach: callback => elements.forEach(callback) };
   page.stopButton = { nativeElement: { focus: () => stats.stopFocused++ } };
   const render = () => { while (renders.length) renders.shift()(); };
-  return { page, stats, elements, render };
+  return { page, stats, elements, render, music };
 }
 
 test('gift click opens exactly five dialogs and only one audio loop', () => {
@@ -87,52 +93,148 @@ test('leaving the page closes dialogs and releases audio, a delayed render canno
   assert.ok(elements.every(element => !element.nativeElement.open));
 });
 
-function setupSong() {
+test('blocked autoplay leaves the video accessible and opens dialogs only after a real Play click', () => {
+  const { page, stats, render, music } = setupPage(false);
+  page.startPrank(); render();
+  assert.equal(page.startPending(), true);
+  assert.equal(page.prankStarted(), false);
+  assert.equal(page.activeDialogs().length, 0);
+  assert.equal(stats.shown, 0);
+  music.callbacks.onBlocked();
+  assert.equal(page.autoplayBlocked(), true);
+  music.callbacks.onPlaying(); render();
+  assert.equal(page.prankStarted(), true);
+  assert.equal(page.autoplayBlocked(), false);
+  assert.equal(stats.shown, 5);
+  music.callbacks.onPlaying(); render();
+  assert.equal(stats.shown, 5);
+});
+
+test('gift click waits for readiness and a player failure does not open dialogs', () => {
+  const { page, stats, music } = setupPage(false);
+  page.songReady.set(false);
+  page.startPrank();
+  assert.equal(stats.starts, 0);
+  page.songReady.set(true);
+  page.startPrank();
+  music.callbacks.onError();
+  assert.equal(page.audioError(), true);
+  assert.equal(page.startPending(), false);
+  assert.equal(page.activeDialogs().length, 0);
+});
+
+function setupSong(apiInitiallyReady = true) {
   const frames = [];
+  const players = [];
+  const scripts = [];
+  const timers = new Map();
+  let timerId = 0;
+  const calls = { playing: 0, blocked: 0, errors: 0 };
   const host = { children: [], appendChild(frame) { this.children.push(frame); } };
+  class Player {
+    constructor(frame, options) {
+      this.events = options.events;
+      this.state = 5;
+      this.actions = [];
+      frame.player = this;
+      players.push(this);
+    }
+    unMute() { this.actions.push('unmute'); }
+    setVolume(value) { this.actions.push('volume:' + value); }
+    playVideo() { this.actions.push('play'); }
+    getPlayerState() { return this.state; }
+    stopVideo() { this.actions.push('stop'); }
+    destroy() { this.actions.push('destroy'); }
+  }
+  const scope = { location: { origin: 'https://philippeckstein.github.io' } };
+  if (apiInitiallyReady) scope.YT = { Player };
   const { CantinaPlayer } = load('src/app/pages/cantina-player.ts', {}, {
-    URL, URLSearchParams,
-    window: { location: { origin: 'https://philippeckstein.github.io' } },
-    document: { createElement(tag) {
-      assert.equal(tag, 'iframe');
-      const frame = { style: {}, removed: 0, remove() { this.removed++; host.children = host.children.filter(item => item !== this); } };
-      frames.push(frame);
-      return frame;
-    } },
+    URL, URLSearchParams, window: scope,
+    setTimeout: (callback, delay) => { timers.set(++timerId, { callback, delay }); return timerId; },
+    clearTimeout: id => timers.delete(id),
+    document: {
+      head: { appendChild(script) { scripts.push(script); } },
+      createElement(tag) {
+        const element = { style: {}, removed: 0, remove() { this.removed++; host.children = host.children.filter(item => item !== this); } };
+        if (tag === 'iframe') frames.push(element);
+        else assert.equal(tag, 'script');
+        return element;
+      },
+    },
   });
-  return { player: new CantinaPlayer(), host, frames };
+  const player = new CantinaPlayer({
+    onPlaying: () => calls.playing++, onBlocked: () => calls.blocked++, onError: () => calls.errors++,
+  });
+  const prepare = async () => {
+    const promise = player.prepare(host);
+    await Promise.resolve();
+    players.at(-1).events.onReady({ target: players.at(-1) });
+    await promise;
+  };
+  return { player, host, frames, players, calls, timers, prepare, scope, scripts, Player };
 }
 
-test('requested Cantina recording starts with autoplay and a single-video loop', async () => {
-  const { player, host, frames } = setupSong();
-  await player.start(host);
-  assert.equal(host.children.length, 1);
-  const url = new URL(frames[0].src);
+test('Cantina player preloads without autoplay, enables API control and retains the single-video loop', async () => {
+  const s = setupSong();
+  await s.prepare();
+  const url = new URL(s.frames[0].src);
   assert.equal(url.origin, 'https://www.youtube.com');
   assert.equal(url.pathname, '/embed/PgKw__lWALI');
-  assert.equal(url.searchParams.get('autoplay'), '1');
+  assert.equal(url.searchParams.get('autoplay'), '0');
+  assert.equal(url.searchParams.get('enablejsapi'), '1');
   assert.equal(url.searchParams.get('loop'), '1');
   assert.equal(url.searchParams.get('playlist'), 'PgKw__lWALI');
-  assert.equal(url.searchParams.get('origin'), 'https://philippeckstein.github.io');
-  assert.equal(frames[0].referrerPolicy, 'strict-origin-when-cross-origin');
-  assert.ok(frames[0].allow.includes('autoplay'));
+  assert.equal(s.calls.playing, 0);
+  assert.equal(s.players[0].actions.length, 0);
+  s.player.start();
+  assert.deepEqual(s.players[0].actions, ['unmute', 'volume:75', 'play']);
+  assert.equal(s.calls.playing, 0);
+  s.players[0].events.onStateChange({ data: 1 });
+  assert.equal(s.calls.playing, 1);
+  assert.equal(s.timers.size, 0);
 });
 
-test('stop removes the playback frame and repeated starts never overlap', async () => {
-  const { player, host, frames } = setupSong();
-  await player.start(host);
-  await player.start(host);
-  assert.equal(frames[0].removed, 1);
-  assert.equal(host.children.length, 1);
-  player.stop(); player.stop();
-  assert.equal(frames[1].removed, 1);
-  assert.equal(host.children.length, 0);
+test('autoplay-blocked and timeout events request manual Play without claiming success', async () => {
+  const s = setupSong();
+  await s.prepare();
+  s.player.start();
+  s.players[0].events.onAutoplayBlocked({});
+  assert.equal(s.calls.blocked, 1);
+  assert.equal(s.calls.playing, 0);
+  assert.equal(s.timers.size, 0);
+  s.player.start();
+  const timeout = [...s.timers.values()].find(timer => timer.delay === 4000);
+  assert.ok(timeout);
+  timeout.callback();
+  assert.equal(s.calls.blocked, 2);
+  s.players[0].events.onStateChange({ data: 1 });
+  assert.equal(s.calls.playing, 1);
 });
 
-test('a missing playback container is reported and cleans up the previous song', async () => {
-  const { player, host, frames } = setupSong();
-  await player.start(host);
-  await assert.rejects(player.start(), /container is not available/);
-  assert.equal(frames[0].removed, 1);
-  assert.equal(host.children.length, 0);
+test('stop preserves the prepared player for another gesture; destroy prevents late playback events', async () => {
+  const s = setupSong();
+  await s.prepare();
+  s.player.start();
+  s.player.stop();
+  assert.equal(s.timers.size, 0);
+  assert.equal(s.host.children.length, 1);
+  assert.equal(s.players[0].actions.at(-1), 'stop');
+  s.player.start();
+  s.player.destroy();
+  assert.equal(s.host.children.length, 0);
+  assert.equal(s.players[0].actions.at(-1), 'destroy');
+  s.players[0].events.onStateChange({ data: 1 });
+  assert.equal(s.calls.playing, 0);
+});
+
+test('leaving during API loading cannot mount a late iframe; a missing container rejects', async () => {
+  const s = setupSong(false);
+  const preparing = s.player.prepare(s.host);
+  assert.equal(s.scripts[0].src, 'https://www.youtube.com/iframe_api');
+  s.player.destroy();
+  s.scope.YT = { Player: s.Player };
+  s.scope.onYouTubeIframeAPIReady();
+  await preparing;
+  assert.equal(s.frames.length, 0);
+  await assert.rejects(s.player.prepare(), /container is not available/);
 });
