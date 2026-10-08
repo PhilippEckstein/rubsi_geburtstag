@@ -1,11 +1,34 @@
-﻿<section class="wishes gift-page" aria-labelledby="gift-title">
+<section class="wishes gift-page" aria-labelledby="gift-title">
   <div class="section-heading">
     <p class="eyebrow">Für dich freigeschaltet</p>
     <h1 id="gift-title" tabindex="-1">Dein Geschenk, Rubsi!</h1>
-    <p class="gift-intro">Die Button-Jagd hast du gemeistert. Peter fühlt mit dir.</p>
   </div>
-  <figure class="meme">
-    <img src="memes/family-guy-geschenk.png" width="1254" height="1254" alt="Family-Guy-Meme: Peter Griffin sitzt genervt mit einer Computermaus auf dem Sofa. Oben steht: Ich nach 10 Sekunden Button-Jagd. Unten: Wo ist mein Geschenk?" decoding="async">
-    <figcaption>Ein bisschen Geduld. Ein bisschen Chaos. Alles Gute zum Geburtstag! ♡</figcaption>
+  <figure class="gift-photo">
+    <img src="images/lama-geschenk.png" width="1122" height="1402" alt="Ein lächelnder Mann sitzt auf einem Lama vor einem Bergpanorama und zeigt den Daumen nach oben." decoding="async">
   </figure>
+  <div class="gift-actions">
+    <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
+  </div>
 </section>
+
+@if (prankStarted()) {
+  <div class="stop-stage">
+    <div class="stop-panel">
+      <p>Genug gefeiert?</p>
+      <button #stopButton class="primary-button" type="button" [disabled]="activeDialogs().length > 0" (click)="stopPrank()">Hardtek beenden ■</button>
+      <p class="remaining" role="status" aria-live="polite">{{ activeDialogs().length > 0 ? 'Noch ' + activeDialogs().length + ' Dialoge schließen.' : 'Alle Dialoge sind weg. Jetzt kannst du die Musik beenden.' }}</p>
+      @if (audioError()) { <p class="remaining">Dein Browser konnte die Musik nicht starten.</p> }
+    </div>
+  </div>
+}
+
+@for (id of activeDialogs(); track id) {
+  <dialog #prankDialog class="prank-dialog" [style.--dialog-offset]="(id - 3) * 22 + 'px'" [attr.aria-labelledby]="'prank-title-' + id" (close)="onDialogClosed(id)" (cancel)="$event.preventDefault(); dismissDialog(prankDialog)">
+    <div class="dialog-heading">
+      <span>Überraschung {{ id }} / 5</span>
+      <button class="dialog-close" type="button" [attr.aria-label]="'Dialog ' + id + ' schließen'" (click)="dismissDialog(prankDialog)" autofocus>✕</button>
+    </div>
+    <img src="images/garden-prank.png" width="1122" height="1402" alt="Ein Mann mit Gartenschlauch vor einem Haus, im Hintergrund laufen seine Freunde davon." decoding="async">
+    <h2 [id]="'prank-title-' + id">Hahah du bist so ein Idiot</h2>
+  </dialog>
+}
