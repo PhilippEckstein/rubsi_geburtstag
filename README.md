@@ -71,13 +71,13 @@ Erstellt mit dem integrierten Imagegen-Tool. Motiv/Prompt: Peter Griffin sitzt e
 
 ## Lama-Geschenk und Hardstyle-Streich
 
-Die zweite Seite zeigt `public/images/lama-geschenk.png`. **Hier kommt dein Geschenk** öffnet gleichzeitig fünf übereinanderliegende native Dialoge mit `public/images/garden-prank.png` und dem Text **Hahah du bist so ein Idiot**. Beide Bilder wurden unverändert aus den bereitgestellten Anhängen übernommen.
+Die zweite Seite zeigt `public/images/lama-geschenk.png`. **Hier kommt dein Geschenk** öffnet gleichzeitig 25 übereinanderliegende native Dialoge mit `public/images/garden-prank.png` und dem Text **Hahah du bist so ein Idiot**. Beide Bilder wurden unverändert aus den bereitgestellten Anhängen übernommen.
 
-Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Hardstyle beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle fünf geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach bleibt das freigeschaltete Minispiel erreichbar.
+Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Hardstyle beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle 25 geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach bleibt das freigeschaltete Minispiel erreichbar.
 
 `src/app/pages/hardstyle-player.ts` erzeugt lokal einen Loop mit 320 BPM, stark verzerrten Kicks, Kick-Rolls, Offbeat-Bass und einem schnellen verstimmten Hardstyle-Synth. Der Start läuft direkt im Geschenk-Klick über die Web Audio API. Es gibt keinen YouTube-Player und keine externen Musik-Anfragen. Die Dialoge öffnen sich nach erfolgreichem Audio-Start. Bei Verlassen der Seite werden Musik und Dialoge beendet.
 
-`npm run test:gift` prüft sowohl die zehn Sekunden Wartezeit auf Seite eins als auch die fünf Dialoge, den Stop-Button und die Audio-Aufräumlogik.
+`npm run test:gift` prüft sowohl die zehn Sekunden Wartezeit auf Seite eins als auch die 25 Dialoge, den Stop-Button und die Audio-Aufräumlogik.
 
 ## Früheres Drachenlord-Meme
 
@@ -87,11 +87,11 @@ Motiv/Prompt: Drachenlord als überraschte Comicfigur, die auf eine Geburtstagsw
 
 ## Video auf der Geschenkseite
 
-Unter dem Lama-Foto ist statt des Drachenlord-Bilds dieses YouTube-Short eingebettet: https://www.youtube.com/shorts/TOqqfboxjPc. Der Player hat ein responsives Hochformat (9:16) und wird per Play-Klick gestartet. Ein Link darunter öffnet das Original auf YouTube. Der Hardstyle-Loop und der Geschenkbutton mit fünf Fotodialogen bleiben davon unabhängig.
+Unter dem Lama-Foto ist statt des Drachenlord-Bilds dieses YouTube-Short eingebettet: https://www.youtube.com/shorts/TOqqfboxjPc. Der Player hat ein responsives Hochformat (9:16) und wird per Play-Klick gestartet. Ein Link darunter öffnet das Original auf YouTube. Der Hardstyle-Loop und der Geschenkbutton mit 25 Fotodialogen bleiben davon unabhängig.
 
 
 ## Geschenk-Minispiel
 
-Nach dem Schließen aller fünf Dialoge erscheint **Fang dein Geschenk!**. Ziel sind 20 eingesammelte Geschenke in 25 Sekunden. Das Geschenk springt nach jedem Treffer und spätestens nach 900 Millisekunden an eine neue Position. Maus, Touch und Tastatur werden unterstützt. Bei Zeitablauf lässt sich die Runde beliebig oft neu starten; der Highscore bleibt während des Besuchs auf der Geschenkseite erhalten.
+Nach dem Schließen aller 25 Dialoge erscheint **Fang dein Geschenk!**. Ziel sind 20 eingesammelte Geschenke in 25 Sekunden. Das Geschenk springt nach jedem Treffer und spätestens nach 900 Millisekunden an eine neue Position. Maus, Touch und Tastatur werden unterstützt. Bei Zeitablauf lässt sich die Runde beliebig oft neu starten; der Highscore bleibt während des Besuchs auf der Geschenkseite erhalten.
 
 Bei 20 Treffern erscheint: **Glückwunsch, du hast dir dein Geschenk verdient! Das bekommst du von Alina.** Die Musik lässt sich unabhängig vom Spiel beenden. Die Spiellogik liegt in src/app/pages/gift-game.ts; die Tests prüfen Freischaltung, Gewinnschwelle, Zeitlimit, Neustart und das Aufräumen des Timers.
