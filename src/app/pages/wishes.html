@@ -13,13 +13,11 @@
     <figcaption><a href="https://www.youtube.com/shorts/TOqqfboxjPc" target="_blank" rel="noopener noreferrer">Video auf YouTube öffnen ↗</a></figcaption>
   </figure>
   <div class="gift-actions">
-    <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted() || startPending()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
+    <button id="start-prank" class="primary-button" type="button" [disabled]="prankStarted() || startPending() || gameUnlocked()" (click)="startPrank()">Hier kommt dein Geschenk <span aria-hidden="true">↗</span></button>
   </div>
   @if (audioError()) { <p class="music-status" role="alert">Die Musik konnte nicht starten. Klick noch einmal auf den Geschenkbutton.</p> }
-</section>
-
 @if (prankStarted()) {
-  <div class="stop-stage">
+  <div class="stop-stage" [class.music-toolbar]="activeDialogs().length === 0">
     <div class="stop-panel">
       <p>Genug gefeiert?</p>
       <button #stopButton class="primary-button" type="button" [disabled]="activeDialogs().length > 0" (click)="stopPrank()">Hardstyle beenden ■</button>
@@ -28,6 +26,22 @@
     </div>
   </div>
 }
+
+  <section #gameSection class="gift-game-section" aria-label="Geschenkspiel">
+    @if (gameUnlocked()) {
+      @if (gameWon()) {
+        <div class="gift-earned" role="status">
+          <span aria-hidden="true">🎁</span>
+          <h2 tabindex="-1">Glückwunsch, du hast dir dein Geschenk verdient!</h2>
+          <p>Das bekommst du von Alina.</p>
+        </div>
+      } @else {
+        <app-gift-game (earned)="onGameEarned()" />
+      }
+    }
+  </section>
+</section>
+
 
 @for (id of activeDialogs(); track id) {
   <dialog #prankDialog class="prank-dialog" [style.--dialog-offset]="(id - 3) * 22 + 'px'" [attr.aria-labelledby]="'prank-title-' + id" (close)="onDialogClosed(id)" (cancel)="$event.preventDefault(); dismissDialog(prankDialog)">

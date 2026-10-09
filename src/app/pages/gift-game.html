@@ -1,0 +1,25 @@
+<div class="game-card">
+  <p class="eyebrow">Eine letzte Herausforderung</p>
+  <h2 id="game-title" tabindex="-1">Fang dein Geschenk!</h2>
+  <p class="game-intro">Sammle {{ targetScore }} Geschenke in 25 Sekunden. Klicke oder tippe auf das Geschenk, bevor es weiterspringt. Mit der Tastatur geht es über Tab und Enter.</p>
+  <div class="scoreboard">
+    <span>Punkte <strong>{{ score() }} / {{ targetScore }}</strong></span>
+    <span>Zeit <strong>{{ seconds() }} s</strong></span>
+    <span>Highscore <strong>{{ bestScore() }}</strong></span>
+  </div>
+  <progress [value]="score()" [max]="targetScore" aria-label="Fortschritt zum Geschenk"></progress>
+  <div class="game-board">
+    @if (state() === 'playing') {
+      <button class="catch-gift" #giftButton type="button" [style.left.%]="position().x" [style.top.%]="position().y" (click)="catchGift(giftId())" (keydown)="onGiftKeydown($event)" aria-label="Geschenk einsammeln">🎁</button>
+    } @else {
+      <div class="game-start">
+        @if (state() === 'lost') {
+          <p role="status">Zeit vorbei! Du hast {{ score() }} Geschenke gesammelt. Versuch es noch einmal.</p>
+        } @else {
+          <p>Die Dialoge hast du geschafft. Jetzt fehlt nur noch dein Highscore!</p>
+        }
+        <button class="primary-button" #roundButton type="button" (click)="start()">{{ state() === 'lost' ? 'Noch einmal spielen' : 'Spiel starten' }}</button>
+      </div>
+    }
+  </div>
+</div>

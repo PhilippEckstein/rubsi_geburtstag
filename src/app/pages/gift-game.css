@@ -1,0 +1,13 @@
+:host { display: block; }
+.game-card { padding: clamp(20px, 4vw, 34px); border: 1px solid #ded9cb; border-radius: 24px; background: #f0ebdf; }
+h2 { font-size: clamp(25px, 4vw, 36px); letter-spacing: -1px; margin: 12px 0 16px; }
+.game-intro { font-size: 14px; line-height: 1.7; color: #69685e; }
+.scoreboard { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 11px; margin: 22px 0 12px; }
+.scoreboard strong { display: block; font-size: 20px; margin-top: 5px; }
+progress { width: 100%; height: 12px; accent-color: #d64b33; }
+.game-board { position: relative; height: clamp(260px, 45vw, 360px); background: #faf7ef; border: 1px solid #ded9cb; border-radius: 18px; margin-top: 18px; overflow: hidden; }
+.catch-gift { position: absolute; width: 54px; height: 54px; border: 0; border-radius: 14px; background: #ecd67e; font-size: 32px; cursor: pointer; touch-action: manipulation; user-select: none; }
+.catch-gift:hover { background: #e9c8c0; }
+.game-start { height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 18px; padding: 20px; text-align: center; }
+.game-start p { margin: 0; font-size: 14px; line-height: 1.7; max-width: 320px; }
+.catch-gift { transform: translate(-50%, -50%); }

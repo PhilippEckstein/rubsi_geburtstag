@@ -1,12 +1,17 @@
-﻿import { Component, ElementRef, Injector, OnDestroy, QueryList, ViewChild, ViewChildren, afterNextRender, inject, signal } from '@angular/core';
+import { Component, ElementRef, Injector, OnDestroy, QueryList, ViewChild, ViewChildren, afterNextRender, inject, signal } from '@angular/core';
 import { HardstylePlayer } from './hardstyle-player';
+import { GiftGame } from './gift-game';
 
 @Component({
   selector: 'app-wishes',
+  imports: [GiftGame],
   templateUrl: './wishes.html',
   styleUrl: './wishes.css',
 })
 export class Wishes implements OnDestroy {
+  protected readonly gameUnlocked = signal(false);
+  protected readonly gameWon = signal(false);
+  @ViewChild('gameSection') private gameSection?: ElementRef<HTMLElement>;
   protected readonly prankStarted = signal(false);
   protected readonly activeDialogs = signal<number[]>([]);
   protected readonly audioError = signal(false);
@@ -19,7 +24,7 @@ export class Wishes implements OnDestroy {
   @ViewChild('stopButton') private stopButton?: ElementRef<HTMLButtonElement>;
 
   protected async startPrank(): Promise<void> {
-    if (this.prankStarted() || this.startPending()) return;
+    if (this.prankStarted() || this.startPending() || this.gameUnlocked()) return;
     const attempt = ++this.attempt;
     this.audioError.set(false);
     this.startPending.set(true);
@@ -46,11 +51,21 @@ export class Wishes implements OnDestroy {
   }
 
   protected onDialogClosed(id: number): void {
-    if (this.destroyed) return;
+    if (this.destroyed || !this.activeDialogs().includes(id)) return;
     this.activeDialogs.update(dialogs => dialogs.filter(dialogId => dialogId !== id));
     if (this.activeDialogs().length === 0) {
-      afterNextRender(() => this.stopButton?.nativeElement.focus(), { injector: this.injector });
+      this.gameUnlocked.set(true);
+      afterNextRender(() => {
+        this.stopButton?.nativeElement.focus();
+        this.gameSection?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, { injector: this.injector });
     }
+  }
+
+  protected onGameEarned(): void {
+    if (!this.gameUnlocked()) return;
+    this.gameWon.set(true);
+    afterNextRender(() => this.gameSection?.nativeElement.querySelector<HTMLElement>('h2')?.focus(), { injector: this.injector });
   }
 
   protected stopPrank(): void {
@@ -60,7 +75,10 @@ export class Wishes implements OnDestroy {
     this.music.stop();
     this.prankStarted.set(false);
     this.audioError.set(false);
-    afterNextRender(() => document.getElementById('start-prank')?.focus(), { injector: this.injector });
+    afterNextRender(() => {
+      if (this.gameUnlocked()) this.gameSection?.nativeElement.querySelector<HTMLElement>('h2')?.focus();
+      else document.getElementById('start-prank')?.focus();
+    }, { injector: this.injector });
   }
 
   ngOnDestroy(): void {

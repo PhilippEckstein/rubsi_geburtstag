@@ -32,7 +32,7 @@ function setupPage(startFailure = false, pendingStart = undefined) {
     inject: () => ({}), afterNextRender: callback => renders.push(callback),
   };
   const { Wishes } = load('src/app/pages/wishes.ts', {
-    '@angular/core': core, './hardstyle-player': { HardstylePlayer: Music },
+    '@angular/core': core, './hardstyle-player': { HardstylePlayer: Music }, './gift-game': { GiftGame: class {} },
   }, { document: { getElementById: () => ({ focus: () => stats.triggerFocused++ }) } });
   const page = new Wishes();
   const elements = [1, 2, 3, 4, 5].map(id => ({ nativeElement: {
@@ -74,7 +74,7 @@ test('stop stays blocked until every dialog is gone, closing the last one does n
   page.stopPrank(); render();
   assert.equal(stats.stops, 1);
   assert.equal(page.prankStarted(), false);
-  assert.equal(stats.triggerFocused, 1);
+  assert.equal(stats.triggerFocused, 0);
 });
 
 test('leaving the page closes dialogs and releases audio, a delayed render cannot reopen them', async () => {
@@ -165,4 +165,25 @@ test('leaving while audio starts prevents the resolved startup from reopening th
   assert.equal(stats.stops, 1);
   assert.equal(stats.shown, 0);
   assert.equal(page.activeDialogs().length, 0);
+});
+
+test('game stays hidden until all five dialogs close and music stopping cannot bypass the win', async () => {
+  const { page, elements, render } = setupPage();
+  page.onDialogClosed(99);
+  page.onGameEarned();
+  assert.equal(page.gameUnlocked(), false);
+  assert.equal(page.gameWon(), false);
+  await page.startPrank(); render();
+  for (const element of elements.slice(0, 4)) {
+    page.dismissDialog(element.nativeElement);
+    assert.equal(page.gameUnlocked(), false);
+  }
+  page.dismissDialog(elements[4].nativeElement); render();
+  assert.equal(page.gameUnlocked(), true);
+  assert.equal(page.gameWon(), false);
+  page.stopPrank(); render();
+  assert.equal(page.gameUnlocked(), true);
+  assert.equal(page.gameWon(), false);
+  page.onGameEarned(); render();
+  assert.equal(page.gameWon(), true);
 });
