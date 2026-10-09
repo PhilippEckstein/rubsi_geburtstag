@@ -9,6 +9,7 @@ import { GiftGame } from './gift-game';
   styleUrl: './wishes.css',
 })
 export class Wishes implements OnDestroy {
+  protected readonly dialogCount = 25;
   protected readonly gameUnlocked = signal(false);
   protected readonly gameWon = signal(false);
   @ViewChild('gameSection') private gameSection?: ElementRef<HTMLElement>;
@@ -34,7 +35,7 @@ export class Wishes implements OnDestroy {
       if (this.destroyed || attempt !== this.attempt) return;
       this.startPending.set(false);
       this.prankStarted.set(true);
-      this.activeDialogs.set([1, 2, 3, 4, 5]);
+      this.activeDialogs.set(Array.from({ length: this.dialogCount }, (_, index) => index + 1));
       afterNextRender(() => {
         if (this.destroyed || !this.prankStarted()) return;
         this.dialogs?.forEach(ref => ref.nativeElement.showModal());

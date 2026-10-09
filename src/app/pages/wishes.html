@@ -45,7 +45,7 @@
 
 
 @for (id of activeDialogs(); track id) {
-  <dialog #prankDialog class="prank-dialog" [style.--dialog-offset]="(id - 3) * 22 + 'px'" [attr.aria-labelledby]="'prank-title-' + id" (close)="onDialogClosed(id)" (cancel)="$event.preventDefault(); dismissDialog(prankDialog)">
+  <dialog #prankDialog class="prank-dialog" [style.--dialog-offset]="((id - 1) % 5 - 2) * 22 + 'px'" [attr.aria-labelledby]="'prank-title-' + id" (close)="onDialogClosed(id)" (cancel)="$event.preventDefault(); dismissDialog(prankDialog)">
     <div class="dialog-heading">
       <span>Überraschung {{ id }} / 5</span>
       <button class="dialog-close" type="button" [attr.aria-label]="'Dialog ' + id + ' schließen'" (click)="dismissDialog(prankDialog)" autofocus>✕</button>

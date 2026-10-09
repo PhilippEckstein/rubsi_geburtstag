@@ -35,7 +35,7 @@ function setupPage(startFailure = false, pendingStart = undefined) {
     '@angular/core': core, './hardstyle-player': { HardstylePlayer: Music }, './gift-game': { GiftGame: class {} },
   }, { document: { getElementById: () => ({ focus: () => stats.triggerFocused++ }) } });
   const page = new Wishes();
-  const elements = [1, 2, 3, 4, 5].map(id => ({ nativeElement: {
+  const elements = Array.from({ length: 25 }, (_, index) => index + 1).map(id => ({ nativeElement: {
     open: false,
     showModal() { this.open = true; stats.shown++; },
     close() { if (this.open) { this.open = false; page.onDialogClosed(id); } },
@@ -46,27 +46,27 @@ function setupPage(startFailure = false, pendingStart = undefined) {
   return { page, stats, elements, render };
 }
 
-test('gift click opens exactly five dialogs and only one audio loop', async () => {
+test('gift click opens exactly 25 dialogs and only one audio loop', async () => {
   const { page, stats, render } = setupPage();
   await page.startPrank();
   await page.startPrank();
-  assert.equal(page.activeDialogs().length, 5);
-  assert.deepEqual(Array.from(page.activeDialogs()), [1, 2, 3, 4, 5]);
+  assert.equal(page.activeDialogs().length, 25);
+  assert.deepEqual(Array.from(page.activeDialogs()), Array.from({ length: 25 }, (_, index) => index + 1));
   assert.equal(stats.starts, 1);
   render();
-  assert.equal(stats.shown, 5);
+  assert.equal(stats.shown, 25);
 });
 
 test('stop stays blocked until every dialog is gone, closing the last one does not stop audio', async () => {
   const { page, stats, elements, render } = setupPage();
   await page.startPrank(); render();
-  for (const element of elements.slice(0, 4)) {
+  for (const element of elements.slice(0, 24)) {
     page.dismissDialog(element.nativeElement);
     page.stopPrank();
     assert.equal(stats.stops, 0);
   }
   assert.equal(page.activeDialogs().length, 1);
-  page.dismissDialog(elements[4].nativeElement);
+  page.dismissDialog(elements[24].nativeElement);
   render();
   assert.equal(page.activeDialogs().length, 0);
   assert.equal(stats.stops, 0);
@@ -167,18 +167,18 @@ test('leaving while audio starts prevents the resolved startup from reopening th
   assert.equal(page.activeDialogs().length, 0);
 });
 
-test('game stays hidden until all five dialogs close and music stopping cannot bypass the win', async () => {
+test('game stays hidden until all 25 dialogs close and music stopping cannot bypass the win', async () => {
   const { page, elements, render } = setupPage();
   page.onDialogClosed(99);
   page.onGameEarned();
   assert.equal(page.gameUnlocked(), false);
   assert.equal(page.gameWon(), false);
   await page.startPrank(); render();
-  for (const element of elements.slice(0, 4)) {
+  for (const element of elements.slice(0, 24)) {
     page.dismissDialog(element.nativeElement);
     assert.equal(page.gameUnlocked(), false);
   }
-  page.dismissDialog(elements[4].nativeElement); render();
+  page.dismissDialog(elements[24].nativeElement); render();
   assert.equal(page.gameUnlocked(), true);
   assert.equal(page.gameWon(), false);
   page.stopPrank(); render();
