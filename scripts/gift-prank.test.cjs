@@ -87,19 +87,22 @@ test('leaving the page closes dialogs and releases audio, a delayed render canno
   assert.ok(elements.every(element => !element.nativeElement.open));
 });
 
-function setupAudio(rejectResume = false) {
+function setupAudio(rejectResume = false, options = {}) {
   const contexts = [];
+  const requests = [];
+  const songBuffer = { duration: 48, numberOfChannels: 2 };
   class AudioContext {
     constructor() {
-      this.sampleRate = 2000;
       this.state = 'suspended';
       this.destination = {};
       this.closed = 0;
       contexts.push(this);
     }
-    createBuffer(channels, frames) {
-      this.samples = new Float32Array(frames);
-      return { getChannelData: () => this.samples };
+    async decodeAudioData(data) {
+      this.decoded = data;
+      if (options.decodeFailure) throw new Error('Invalid audio');
+      if (options.decodeGate) await options.decodeGate;
+      return songBuffer;
     }
     createBufferSource() {
       this.source = { connect() {}, disconnect() {}, starts: 0, stops: 0, start() { this.starts++; }, stop() { this.stops++; } };
@@ -109,37 +112,68 @@ function setupAudio(rejectResume = false) {
     async resume() { if (rejectResume) throw new Error('Audio blocked'); this.state = 'running'; }
     async close() { this.state = 'closed'; this.closed++; }
   }
-  const { HardstylePlayer } = load('src/app/pages/hardstyle-player.ts', {}, { AudioContext });
-  return { player: new HardstylePlayer(), contexts };
+  const fetch = async (url, request) => {
+    assert.equal(contexts.at(-1).state, 'running', 'unlock audio before fetching');
+    requests.push({ url, ...request });
+    return { ok: !options.missing, arrayBuffer: async () => new ArrayBuffer(8) };
+  };
+  const { HardstylePlayer } = load('src/app/pages/hardstyle-player.ts', {}, { AudioContext, AbortController, fetch });
+  return { player: new HardstylePlayer(), contexts, requests, songBuffer };
 }
 
-test('320 BPM hardstyle loop contains bounded nonzero audio, loops, and cleans up without overlap', async () => {
-  const { player, contexts } = setupAudio();
+test('local birthday song is decoded, loops, and cleans up without overlapping playback', async () => {
+  const { player, contexts, requests, songBuffer } = setupAudio();
   await player.start();
   const first = contexts[0];
+  assert.equal(requests[0].url, 'audio/happy-birthday-rubsi.mp3');
+  assert.equal(first.source.buffer, songBuffer);
   assert.equal(first.source.loop, true);
-  assert.equal(first.samples.length, 12000);
   assert.equal(first.source.starts, 1);
-  let energy = 0;
-  for (const sample of first.samples) {
-    assert.ok(Number.isFinite(sample));
-    assert.ok(Math.abs(sample) <= 0.28);
-    energy += Math.abs(sample);
-  }
-  assert.ok(energy > 100);
   await player.start();
   assert.equal(first.closed, 1);
   assert.equal(first.source.stops, 1);
+  assert.equal(requests[0].signal.aborted, true);
   player.stop(); player.stop();
   assert.equal(contexts[1].closed, 1);
   assert.equal(contexts[1].source.stops, 1);
+  assert.equal(requests[1].signal.aborted, true);
 });
 
-test('blocked audio releases the context instead of leaving an orphaned loop', async () => {
-  const { player, contexts } = setupAudio(true);
+test('blocked audio releases the context without requesting the song', async () => {
+  const { player, contexts, requests } = setupAudio(true);
   await assert.rejects(player.start(), /Audio blocked/);
   assert.equal(contexts[0].closed, 1);
-  assert.equal(contexts[0].source.stops, 1);
+  assert.equal(contexts[0].source, undefined);
+  assert.equal(requests.length, 0);
+});
+
+test('failed song loading or decoding releases audio and allows a later retry', async () => {
+  for (const options of [{ missing: true }, { decodeFailure: true }]) {
+    const { player, contexts, requests } = setupAudio(false, options);
+    await assert.rejects(player.start());
+    assert.equal(contexts[0].closed, 1);
+    assert.equal(contexts[0].source, undefined);
+    assert.equal(requests[0].signal.aborted, true);
+    options.missing = false;
+    options.decodeFailure = false;
+    await player.start();
+    assert.equal(contexts[1].source.starts, 1);
+    player.stop();
+  }
+});
+
+test('stopping during song decoding prevents late playback and closes the context', async () => {
+  let finishDecode;
+  const decodeGate = new Promise(resolve => { finishDecode = resolve; });
+  const { player, contexts, requests } = setupAudio(false, { decodeGate });
+  const starting = player.start();
+  await new Promise(resolve => setImmediate(resolve));
+  player.stop();
+  finishDecode();
+  await starting;
+  assert.equal(contexts[0].closed, 1);
+  assert.equal(contexts[0].source, undefined);
+  assert.equal(requests[0].signal.aborted, true);
 });
 
 test('failed audio startup keeps the gift button retryable and does not open silent dialogs', async () => {

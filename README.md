@@ -75,7 +75,11 @@ Die zweite Seite zeigt `public/images/lama-geschenk.png`. **Hier kommt dein Gesc
 
 Die Dialoge lassen sich einzeln über das Kreuz oder Escape schließen. Der Button **Hardstyle beenden** befindet sich auf der Seite hinter den Dialogen. Er ist durch die modalen Dialoge verdeckt und bleibt zusätzlich deaktiviert, bis alle 25 geschlossen wurden. Das Schließen des letzten Dialogs beendet die Musik noch nicht; erst der Stop-Button beendet den Loop. Danach bleibt das freigeschaltete Minispiel erreichbar.
 
-`src/app/pages/hardstyle-player.ts` erzeugt lokal einen Loop mit 320 BPM, stark verzerrten Kicks, Kick-Rolls, Offbeat-Bass und einem schnellen verstimmten Hardstyle-Synth. Der Start läuft direkt im Geschenk-Klick über die Web Audio API. Es gibt keinen YouTube-Player und keine externen Musik-Anfragen. Die Dialoge öffnen sich nach erfolgreichem Audio-Start. Bei Verlassen der Seite werden Musik und Dialoge beendet.
+`public/audio/happy-birthday-rubsi.mp3` ist ein eigener 48-Sekunden-Hardstyle-Loop mit 320 BPM, verzerrten Kicks, Bass, Synth und synthetisch gesprochenen Geburtstags-Vocal-Chops. **Happy Birthday Rubsi, Ruben, Rübi, Rudi, Pupsi** wird in wechselnden Tonhöhen, mit Echo und zerhackten Wiederholungen verwendet. Der Track wurde lokal erstellt; es handelt sich um bearbeitete Sprachsynthese, nicht um eingesungenen Gesang.
+
+`src/app/pages/hardstyle-player.ts` entsperrt den AudioContext direkt im Geschenk-Klick, lädt die lokale MP3 und spielt sie in Dauerschleife. Der Stop-Button und das Verlassen der Seite beenden den Loop und brechen laufende Ladevorgänge ab. Es gibt keine externen Musik-Anfragen. Die Dialoge öffnen sich nach erfolgreichem Audio-Start. Der vorhandene YouTube-Short bleibt ein separater Videoplayer.
+
+Zum Neuerstellen unter Windows: `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/create-birthday-song.ps1`. Voraussetzungen: Microsoft-Hedda-Sprachstimme, Node.js und ffmpeg. Die Samples und der WAV-Mix landen im ignorierten Ordner `tmp/birthday-song`; nur die fertige MP3 wird veröffentlicht.
 
 `npm run test:gift` prüft sowohl die zehn Sekunden Wartezeit auf Seite eins als auch die 25 Dialoge, den Stop-Button und die Audio-Aufräumlogik.
 
